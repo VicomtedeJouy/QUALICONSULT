@@ -5,6 +5,8 @@ Created on Sun Jan 07 18:49:58 2018
 @author: Augustin
 """
 
+
+
 import clr
 clr.AddReference('ProtoGeometry')
 clr.AddReference('RevitNodes')
@@ -78,27 +80,27 @@ def build_ground_list(data, level_list):
         list_grounds.append(Ground(element, level_list))
     return list_grounds
           
-def build_list_results(list_grounds):
+def build_lists(list_grounds):
     list_results = []
+    list_problems = []
     for ground in list_grounds:
     	ground.get_results(list_grounds)
         for module in ground.list_results:
             if not is_in_list(module, list_results):
                 list_results.append(module)
-    return list_results
+                if module.problem == True:
+            		list_problems.append(module) 
+    return list_results, list_problems
     
 def build_list_problems(list_results):
-    list_problems= []
-    for module in list_results:
-        if module.problem == True:
-            list_problems.append(module)
+    
     return list_problems
     
 def results_display(list_results):
-    return [[module.id, module.distance] for module in list_results]
+    return [[module.id, module.level_info, module.distance] for module in list_results]
     
 def problems_display(list_problems):
-	return[[module.id, module.problem_type, module.geometry] for module in list_problems]
+	return[[module.id, module.problem_type, module.level_info, module.geometry] for module in list_problems]
             
 
  
@@ -107,12 +109,16 @@ class Ground:
         self.geometry = ground.Geometry()[0]
         self.id_number = ground.Id
         self.level_index = self.level_index_ground(ground, level_list)
+        self.level_name = self.level_name_ground(ground)
         self.point_down = BoundingBox.ByGeometry(self.geometry).MinPoint
         self.point_up = BoundingBox.ByGeometry(self.geometry).MaxPoint
         self.pseudo_geometry = self.geometry.Translate(Vector.ByCoordinates(0., 0., -self.point_down.Z))
         
     def level_index_ground(self, ground, level_list):
         return level_list.index(ground.GetParameterValueByName('Niveau').Id)
+        
+    def level_name_ground(self, ground):
+        return ground.GetParameterValueByName('Niveau').Name
         
     def get_results(self, list_grounds):
         self.list_results = []
@@ -149,6 +155,7 @@ class Ground:
 class DistModule:
     def __init__(self, ground1, ground2):
         self.id = (ground1.id_number, ground2.id_number)
+        self.level_info = ground1.level_name + " to " + ground2.level_name
         self.distance = self.set_distance(ground1, ground2)
         self.geometry = (ground1.geometry, ground2.geometry)
         self.problem = self.set_state()
@@ -162,8 +169,8 @@ class DistModule:
         return False
 		
     def set_distance(self, ground1, ground2):
-        dist1 = abs(ground1.point_down.Z - ground2.point_up.Z)
-        dist2 = abs(ground1.point_up.Z - ground2.point_down.Z)
+        dist1 = abs(ground1.point_down.Z - ground2.point_up.Z) * 0.3048
+        dist2 = abs(ground1.point_up.Z - ground2.point_down.Z) * 0.3048
         return min(dist1, dist2)
         
     def set_state(self):
@@ -173,9 +180,9 @@ class DistModule:
         
     def set_pb_type(self):
         if self.distance > max_height:
-            return "Trop haut"
+            return "Trop haut : " + repr(self.distance)
         if self.distance < min_height:
-            return "Trop bas"
+            return "Trop bas : " + repr(self.distance)
         return "Aucun"
     
         
@@ -184,9 +191,7 @@ list_level = build_level_list(list_data)
 
 list_grounds = build_ground_list(list_data, list_level)
 
-list_results = build_list_results(list_grounds)
-
-list_problems = build_list_problems(list_results)
+list_results, list_problems = build_lists(list_grounds)
 
 if choice_value == "Résultats généraux":
     OUT = results_display(list_results)
