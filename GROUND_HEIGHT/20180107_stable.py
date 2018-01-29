@@ -97,10 +97,24 @@ def build_list_problems(list_results):
     return list_problems
     
 def results_display(list_results):
-    return [[module.id, module.level_info, module.distance] for module in list_results]
+	new_list = [[module.id, module.level_info, module.distance] for module in list_results]
+	n = len(new_list)
+	new_list.insert(0, "Il y a {} dalles superposées".format(n))
+	return new_list
     
 def problems_display(list_problems):
-	return[[module.id, module.problem_type, module.level_info, module.geometry] for module in list_problems]
+	n = len(list_problems)
+	if n == 0:
+		new_list = "Il ne semble pas y avoir de problème"
+	elif n == 1:
+		module = list_problems[0]
+		new_list = [module.id, module.problem_type, module.level_info, module.geometry]
+		new_list.insert(0, "Il y a un problème")
+	else:
+		new_list = [[module.id, module.problem_type, module.level_info, module.geometry] for module in list_problems]
+		N = len(new_list)
+		new_list.insert(0, "Il y a {} problèmes".format(N))
+	return new_list
             
 
  
@@ -169,8 +183,8 @@ class DistModule:
         return False
 		
     def set_distance(self, ground1, ground2):
-        dist1 = abs(ground1.point_down.Z - ground2.point_up.Z) * 0.3048
-        dist2 = abs(ground1.point_up.Z - ground2.point_down.Z) * 0.3048
+        dist1 = abs(ground1.point_down.Z - ground2.point_up.Z) / 1000
+        dist2 = abs(ground1.point_up.Z - ground2.point_down.Z) / 1000
         return min(dist1, dist2)
         
     def set_state(self):
