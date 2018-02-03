@@ -16,7 +16,7 @@ from Autodesk.DesignScript.Geometry import *
 from Revit import *
 from DSCore import *
 
-#Les entrées effectuées dans ce noeud sont stockées sous forme de liste dans les variables IN.
+# variables d'entrées
 list_data = IN[0]
 min_height = IN[1]
 max_height = IN[2]
@@ -79,7 +79,8 @@ def build_ground_list(data, level_list):
     for element in data:
         list_grounds.append(Ground(element, level_list))
     return list_grounds
-          
+
+# créer les listes contenants les résultats	
 def build_lists(list_grounds):
     list_results = []
     list_problems = []
@@ -91,11 +92,8 @@ def build_lists(list_grounds):
                 if module.problem == True:
             		list_problems.append(module) 
     return list_results, list_problems
-    
-def build_list_problems(list_results):
-    
-    return list_problems
-    
+
+# décore les listes de résultats
 def results_display(list_results):
 	new_list = [[module.id, module.level_info, module.distance] for module in list_results]
 	n = len(new_list)
@@ -118,6 +116,7 @@ def problems_display(list_problems):
             
 
  
+# classe décrivant l'object "dalle" 
 class Ground:
     def __init__(self, ground, level_list):
         self.geometry = ground.Geometry()[0]
@@ -165,7 +164,8 @@ class Ground:
             for ground in self.surrounding_grounds:
                 self.results.append(DistModule(ground, self))
         
-        
+
+# classe décrivant la relaion de deux dalles l'une au dessus de l'autre        
 class DistModule:
     def __init__(self, ground1, ground2):
         self.id = (ground1.id_number, ground2.id_number)
@@ -174,7 +174,8 @@ class DistModule:
         self.geometry = (ground1.geometry, ground2.geometry)
         self.problem = self.set_state()
         self.problem_type = self.set_pb_type()
-		
+	
+	# définition d'égalité entre les objets de la classe
     def __eq__(self, other):
         if self.id[0] == other.id[0] and self.id[1] == other.id[1]:
             return True
@@ -201,12 +202,13 @@ class DistModule:
     
         
         
+
+# création des listes
 list_level = build_level_list(list_data)
-
 list_grounds = build_ground_list(list_data, list_level)
-
 list_results, list_problems = build_lists(list_grounds)
 
+# choix du type d'OUTPUT
 if choice_value == "Résultats généraux":
     OUT = results_display(list_results)
 if choice_value == "Liste des problèmes":
