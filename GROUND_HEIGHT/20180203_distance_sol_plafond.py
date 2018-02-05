@@ -1,9 +1,15 @@
 # -*- coding: utf-8 -*-
 """
-Created on Sun Feb 03 18:49:58 2018
+Created on Sun Jan 07 18:49:58 2018
 
 @author: Augustin
 """
+
+import System as sys
+
+#stdsave = sys.stdout
+#fout = open(r'C:\Users\Augustin\Informatique\output.txt','w')
+#sys.stdout = fout
 
 
 
@@ -29,13 +35,13 @@ global invalid
 
  
 # créer une liste d'objets HorizotalObject            
-def generate_list(list):
+def generate_list(data_list):
 	class_list = []
-	for element in list:
+	for element in data_list:
 		class_list.append(HorizontalObject(element))
 	return class_list
 
-# classe permetant l'exploitation des données plus facielement
+# classe permettant l'exploitation des données plus facielement
 class HorizontalObject:
     def __init__(self, object):
         self.geometry = object.Geometry()[0]
@@ -54,6 +60,7 @@ class HorizontalObject:
     def same_floor(self, other):
     	if self.level == other.level:
     		return True
+    	return False
     
     def superpose(self, other):
         if Geometry.DoesIntersect(self.pseudo_geometry, other.pseudo_geometry):
@@ -64,40 +71,74 @@ class HorizontalObject:
         
     def check_wrap(self, distance):
 		if distance < min_height:
-			return True, "Pafond trop bas : {}m < {}m".format(distance, min_height)
+			return True, "Plafond trop bas : {}m < {}m".format(distance, min_height)
 		if distance > max_height:
-			return True, "Pafond trop haut : {}m > {}m".format(distance, max_height)
-		return False, ""
+			return True, "Plafond trop haut : {}m > {}m".format(distance, max_height)
+		return False, "Hateur de {}m".format(distance)
         
-    def check_list(self, list):
+    def check_list(self, other_list):
     	results = []
-    	for element in list:
+    	for element in other_list:
+    		#print self.same_floor(element), self.superpose(element)
     		if self.same_floor(element) and self.superpose(element):
-    			id = (min(self.id, element.id), max(self.id, element.id))
-    			dist = self.dist_object(element)
-    			bloc = [id, self.level_name, dist]
-    			problem, msg = self.check_wrap(dist)
+				id = (min(self.id, element.id), max(self.id, element.id))
+				dist = self.dist_object(element)
+				bloc = [id, self.level_name, dist]
+				problem, msg = self.check_wrap(dist)
 				if invalid and problem:
-    				bloc.append(msg)
-    			results.append(bloc)
+					bloc.append(msg)
+				results.append(bloc)
 		return results
 
+	def check_item(self, other):
+		result = []
+		if self.same_floor(other) and self.superpose(other):
+			id = (min(self.id, other.d), max(self.id, other.id))
+			dist = self.dist_object(element)
+			bloc = [id, self.level_name, dist]
+			problem, msg = self.check_wrap(dist)
+			if invalid and problem:
+				bloc.append(msg)
+			result.append(bloc)
+		return result
+		
 	
     
         
-def main(data1, data2, bool):        
-	list1 = generate_list(list_data1)
-	list2 = generate_list(list_data2)
+def main(data1, data2):        
+	list1 = generate_list(data1)
+	list2 = generate_list(data2)
 	
 	results = []
+	debug = []
 	
 	for element in list1:
 		temp = element.check_list(list2)
+		
+		debug.append(temp)
 		
 		for bloc in temp:
 			results.append(bloc)
 			
 	return results
+	
+def main_2(data1, data2)
+	list1 = generate_list(data1)
+	list2 = generate_list(data2)
+	
+	results = []
+	
+	for element in list1:
+		for other_element in list2:
+			temp = element.check_item(other_element)
+			
+			if temp != None:
+				results.append(temp)
+	
+	return result
 
-OUT = generate_list(list_data2)
-#OUT = main(list_data1, list_data2, invalid)
+#OUT = generate_list(list_data2)
+OUT = main_2(list_data1, list_data2)
+
+#sys.stdout = stdsave
+#fout.close()
